@@ -1,0 +1,8 @@
+---
+# Kubernetes Cluster
+
+- name: Common Parts
+  hosts: all
+  become: yes
+  roles:
+    - role: docker
