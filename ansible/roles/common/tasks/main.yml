@@ -1,0 +1,40 @@
+---
+
+- name: Disable swap
+  shell: 'swapoff -a'
+
+- name: Adding Kubernetes apt key
+  apt-key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Adding Kubernetes APT repository
+  apt_repository: 
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: 'kubernetes'
+
+- name: Installing Kubernetes
+  apt: 
+    name: {{item}}
+    update_cache: yes
+  vars:
+    packages:
+      - kubectl={{ version }}
+      - kubeadm={{ version }}
+      - kubelet={{ version }}
+
+- name: Copying kubeadm.conf
+  template:
+    src: 10-kubeadm.conf.j2
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  notify: restart_kubelet  
+
+- name: Setup kubeconfig for vagrant user
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/vagrant/.kube/config
+    remote_src: yes
+    owner: vagrant
+    group: vagrant
+    mode: '0644'
