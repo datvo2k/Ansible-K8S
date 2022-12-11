@@ -4,7 +4,7 @@
   shell: 'swapoff -a'
 
 - name: Adding Kubernetes apt key
-  apt-key:
+  apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
     state: present
 
@@ -16,25 +16,16 @@
 
 - name: Installing Kubernetes
   apt: 
-    name: {{item}}
+    name: "{{ packages }}"
     update_cache: yes
   vars:
     packages:
-      - kubectl={{ version }}
-      - kubeadm={{ version }}
-      - kubelet={{ version }}
+      - kubectl
+      - kubeadm
+      - kubelet
 
 - name: Copying kubeadm.conf
   template:
     src: 10-kubeadm.conf.j2
     dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-  notify: restart_kubelet  
-
-- name: Setup kubeconfig for vagrant user
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: /home/vagrant/.kube/config
-    remote_src: yes
-    owner: vagrant
-    group: vagrant
-    mode: '0644'
+  notify: restart_kubelet

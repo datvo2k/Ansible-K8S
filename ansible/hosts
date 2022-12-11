@@ -1,0 +1,11 @@
+[all-nodes]
+192.168.70.2 ansible_user=vagrant ansible_ssh_pass=vagrant
+192.168.70.3 ansible_user=vagrant ansible_ssh_pass=vagrant
+192.168.70.4 ansible_user=vagrant ansible_ssh_pass=vagrant
+
+[kube-master]
+192.168.70.2 ansible_user=vagrant ansible_ssh_pass=vagrant
+
+[kube-nodes]
+192.168.70.3 ansible_user=vagrant ansible_ssh_pass=vagrant
+192.168.70.4 ansible_user=vagrant ansible_ssh_pass=vagrant
