@@ -7,26 +7,25 @@
   roles:
     - role: docker
     - role: common
+      version: 1.25.4-00
       ip: "{{ ansible_host }}"
 
-# - name: Master
-#   hosts: kube-master
-#   become: yes
-#   roles:
-#   - role: kubernetes-master
-#     version: 1.25.4
-#     cidr: 10.244.0.0/16
-#     ip: "{{ hostvars['master1']['ansible_host'] }}" 
-#     k8s_middle_server: k8s_middle_server
+- name: Master
+  hosts: kube-master
+  become: yes
+  roles:
+    - role: master-kubernetes
+      version: 1.25.4-00
+      cidr: 192.168.0.0/16
+      ip: "{{ ansible_host }}"
 
-# - name: Workers
-#   gather_facts: yes
-#   hosts: workers
-#   become: yes
-#   roles:
-#   - role: kubernetes-worker
-#     version: 1.25.4
-#     k8s_middle_server: k8s_middle_server 
+- name: Workers
+  gather_facts: yes
+  hosts: kube-nodes
+  become: yes
+  roles:
+  - role: worker-kubernetes
+    version: 1.25.4-00
 
 # - name: Local
 #   hosts: 127.0.0.1

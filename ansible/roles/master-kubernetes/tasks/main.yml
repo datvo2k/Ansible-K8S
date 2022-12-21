@@ -3,38 +3,21 @@
 - name: Initializing K8S master
   command: "kubeadm init --pod-network-cidr={{ cidr }} --apiserver-advertise-address={{ ip }}"
 
-- name: Create kube directory
-  file:
-    path: /home/vagrant/.kube
-    state: directory
-
 - name: Setup kubeconfig for vagrant user
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: /home/vagrant/.kube/config
-    remote_src: yes
-    owner: vagrant
-    group: vagrant
-    mode: '0644'
+  command: "{{ item }}"
+  with_items:
+    - mkdir -p /home/vagrant/.kube
+    - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+    - chown vagrant:vagrant /home/vagrant/.kube/config
 
-- name: Kubernetes Join command  
-  shell: "kubeadm token create --print-join-command"
-  register: kube_join_command
+- name: Install calico pod network
+  become: false
+  command: kubectl apply -f https://docs.projectcalico.org/v3.14/getting-started/kubernetes/installation/hosted/calico.yaml
 
-- name: Print Kubernetes Join command
-  debug:
-    var: kube_join_command.stdout_lines
+- name: Generate join command
+  command: kubeadm token create --print-join-command
+  register: join_command
 
-- name: Kubernetes Config  
-  shell: "cat /etc/kubernetes/admin.conf"
-  register: kube_config
-
-- name: Print Kubernetes Config
-  debug:
-    var: kube_config.stdout_lines 
-
-- name: "Add K8S information"
-  add_host:
-    name:   "{{ k8s_middle_server }}"
-    kube_join_command:  "{{ kube_join_command.stdout }}"
-    kube_config:   "{{ kube_config.stdout }}"
+- name: Copy join command to local file
+  become: false 
+  local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"

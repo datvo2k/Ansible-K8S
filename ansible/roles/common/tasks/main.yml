@@ -14,18 +14,46 @@
     state: present
     filename: 'kubernetes'
 
+- name: Apt Get Update
+  become: true
+  apt:
+    update_cache: "yes"
+
 - name: Installing Kubernetes
   apt: 
-    name: "{{ packages }}"
+    name: '{{ packages }}'
     update_cache: yes
   vars:
     packages:
-      - kubectl
-      - kubeadm
-      - kubelet
+      - kubectl={{ version }}
+      - kubeadm={{ version }}
+      - kubelet={{ version }}
 
-- name: Copying kubeadm.conf
-  template:
-    src: 10-kubeadm.conf.j2
-    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-  notify: restart_kubelet
+# - name: Copying kubeadm.conf
+#   template:
+#     src: 10-kubeadm.conf.j2
+#     dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+#   notify: restart_kubelet
+
+- name: Configure node ip
+  lineinfile:
+    path: /etc/default/kubelet
+    line: KUBELET_EXTRA_ARGS=--node-ip={{ ip }}
+    create: yes
+
+- name: remove file 
+  file:
+    path: /etc/containerd/config.toml
+    state: absent
+
+- name: restart containerd
+  service: 
+    name: containerd
+    state: restarted 
+    daemon_reload: yes
+
+- name: Restart kubelet
+  service:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
